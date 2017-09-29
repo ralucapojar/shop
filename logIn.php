@@ -1,5 +1,5 @@
 <?php 
-    require "db.php";
+    require "common.php";
     session_start();
     
     $nameErr = $passErr = "";
@@ -23,10 +23,10 @@
         $pass = $_POST['pass'];
 
         if (strcmp($name, 'user') == 0 && strcmp($pass, 'user') == 0) {
-           header("Location:index.php");
+            header("Location:index.php");
         } else {
-             header("Location:logIn.php");  
-          }
+            header("Location:logIn.php");  
+        }
     }
 
     if (isset($_POST['name'])) {
@@ -38,7 +38,7 @@
                 $nameErr = "Only letters and white space allowed";
             }
             checkUser();
-          }
+        }
 
         if (isset($_POST['pass'])) {
             if (empty($_POST["pass"])) {
@@ -55,22 +55,22 @@
         } 
     }
 ?>
-    <html>
-    <head>
-    <style type="text/css">
+<html>
+<head>
+<style type="text/css">
     .error {color:red;}
-    </style>
-    </head>
-    <body>  
+</style>
+</head>
+<body>  
     <h2>LogIn Form</h2>
     <h2 class="error"> <?= $dbMessage ?> </h2><br>
     <p><span class="error">* Please complete the input fields below</span></p>
     <form method="post" action="logIn.php" > 
-    UserName: <input type="text" name="name" value="<?= $name;?>" >
-    <span class="error">* <?= $nameErr ?></span><br><br>
-    Password:  <input type="password" name="pass" value="<?= $pass;?>" >
-    <span class="error">* <?= $passErr ?></span><br><br>
-    <input type="submit" name="submit" value="<?= translate('signIn') ?>" >  
+        UserName: <input type="text" name="name" value="<?= protect($name);?>" >
+        <span class="error">* <?= $nameErr ?></span><br><br>
+        Password:  <input type="password" name="pass" value="<?= protect($pass);?>" >
+        <span class="error">* <?= $passErr ?></span><br><br>
+        <input type="submit" name="submit" value="<?= translate('signIn') ?>" >  
     </form>
-    </body>
-    </html>
+</body>
+</html>
