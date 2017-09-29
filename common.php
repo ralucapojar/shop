@@ -66,3 +66,7 @@ function translate($key) {
     global $translations;
     return isset($translations['en']) && isset($translations['en'][$key]) ?  $translations['en'][$key] : $key;
 }
+
+function protect($str) {
+    return htmlentities(strip_tags($str));
+}

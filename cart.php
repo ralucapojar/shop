@@ -11,9 +11,9 @@
     setData($conn, $products_array, $sql, '');
     
     if (strpos($checkUrl, 'empty')) {
-    emptyCart();
-    header("Location: cart.php");
-    die;
+        emptyCart();
+        header("Location: cart.php");
+        die;
     } 
 
     if (strpos($checkUrl, 'remove')) {
