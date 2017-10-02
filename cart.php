@@ -1,16 +1,13 @@
 <?php 
-    session_start();
     require_once 'common.php';
 
     $total = 0;
-    $empty_cart = 'The cart is empty!';
-    $checkUrl = $_SERVER["REQUEST_URI"];
 
-    if (strpos($checkUrl, 'empty')) {
+    if (isset($_GET['action']) && $_GET['action'] == 'empty') {
         emptyCart();
     } 
 
-    if (strpos($checkUrl, 'remove')) {
+    if (isset($_GET['action']) && $_GET['action'] == 'remove') {
         $id = $_GET['id'];    
         unset($_SESSION['cart'][$id]);
     }
@@ -19,13 +16,7 @@
         addToCart();     
     } 
 
-    $products_array = getProducts($conn, true);
-
-    if (!is_string($products_array)) {
-        $products_error = '';
-    } else {
-        $products_error = 'Products NOT found!';
-    }
+    $products_array = getProducts( true);
 
     if (isset($_SESSION['cart'])) {
         foreach ($products_array as $elem_product) {
@@ -50,7 +41,7 @@
 </style>
 </head>
 <body>
-<?= $products_error ?>
+<?= (is_string($products_array) ? $products_array : '') ?>
 <h1 class="error">Cart Products</h2>
 <a class="button" type="button"  href="cart.php?action=empty"><?= translate('empty') ?></a>
 <a class="button" type="button"  href="index.php"><?= translate('view') ?></a>

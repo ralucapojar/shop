@@ -1,26 +1,15 @@
 <?php 
-    session_start();
     require_once 'common.php';
-
-    $checkUrl = $_SERVER["REQUEST_URI"];
     
-    if (strpos($checkUrl, 'quantity')) {        
-        addToCart();         
+    if (isset($_GET['quantity']) && isset($_GET['id'])) {    
+        addToCart();     
     } 
 
-    if (strpos($checkUrl, 'empty')) { 
-        emptyCart();  
-    }
+    if (isset($_GET['action']) && $_GET['action'] == 'empty') {
+        emptyCart();
+    } 
 
-    $products_array = getProducts($conn, false);
-
-    if (!is_string($products_array)) {
-        $products_error = '';
-    } else {
-        $products_error = 'Products NOT found!';
-    }
-
-     
+    $products_array = getProducts(false);     
 ?>
 <html>
 <head>
@@ -36,7 +25,7 @@
 </style>
 </head>
 <body>
-    <?= $products_error ?>
+    <?= (is_string($products_array) ? $products_array : '') ?>
     <h1 style="color:red;">List Products</h2>
     <a class="btnStyle" type="button" href="cart.php"><?= translate('cart') ?></a>
     <a class="btnStyle" type="button" href="index.php?action=empty"><?= translate('empty') ?></a>
