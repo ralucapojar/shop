@@ -3,22 +3,24 @@
     require_once 'common.php';
 
     $checkUrl = $_SERVER["REQUEST_URI"];
-    $products_error = '';
-    $products_array = array();        
-    $sql = "";
-    setData($conn, $products_array, $sql, 'NOT');
-
+    
     if (strpos($checkUrl, 'quantity')) {        
-        addToCart();      
-        header("Location: index.php");
-        die;    
+        addToCart();         
     } 
 
     if (strpos($checkUrl, 'empty')) { 
         emptyCart();  
-        header("Location: index.php");
-        die;
-    } 
+    }
+
+    $products_array = getProducts($conn, false);
+
+    if (!is_string($products_array)) {
+        $products_error = '';
+    } else {
+        $products_error = 'Products NOT found!';
+    }
+
+     
 ?>
 <html>
 <head>
@@ -38,20 +40,22 @@
     <h1 style="color:red;">List Products</h2>
     <a class="btnStyle" type="button" href="cart.php"><?= translate('cart') ?></a>
     <a class="btnStyle" type="button" href="index.php?action=empty"><?= translate('empty') ?></a>
-    <div>     
-        <?php foreach ($products_array as $elem_product): ?>
-        <div class="border">
-            <h2 class="title">Product: <?= protect($elem_product["title"]) ?></h2>
-            <h3 class="price">Price:  <?= protect($elem_product["price"]) ?>$</h3><br>;
-            <img class="image" src="<?= protect($elem_product["img"]) ?>"/><br>;
-            <p>Description: <br> <?= protect($elem_product["description"]) ?></p><br>
-            <form method="get"  action="index.php">
-                <input type="number" min="1"  placeholder="quantity" name="quantity" required="required" />
-                <input type="hidden" name="id" value="<?= protect($elem_product["id"]) ?>"/>
-                <input type="submit" value="<?= translate('add') ?>" />
-            </form>
-        </div>
-        <?php endforeach; ?>
+    <div>  
+        <?php  if (!is_string($products_array)): ?>    
+            <?php foreach ($products_array as $elem_product): ?>
+            <div class="border">
+                <h2 class="title">Product: <?= protect($elem_product["title"]) ?></h2>
+                <h3 class="price">Price:  <?= protect($elem_product["price"]) ?>$</h3><br>;
+                <img class="image" src="<?= protect($elem_product["img"]) ?>"/><br>;
+                <p>Description: <br> <?= protect($elem_product["description"]) ?></p><br>
+                <form method="get"  action="index.php">
+                    <input type="number" min="1"  placeholder="quantity" name="quantity" required="required" />
+                    <input type="hidden" name="id" value="<?= protect($elem_product["id"]) ?>"/>
+                    <input type="submit" value="<?= translate('add') ?>" />
+                </form>
+            </div>
+            <?php endforeach; ?>
+        <?php endif; ?>    
     </div>
 </body>      
 </html>         

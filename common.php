@@ -7,89 +7,126 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-function setData($conn, &$products_array, &$sql, $key) {
+function getProducts($conn, $key) {
     $sql = "SELECT id, title, description, price, img FROM products";
-    if (isset($_SESSION['cart']) && sizeof($_SESSION['cart'])) {
-        $sql .= ' WHERE id '.$key.' IN (' . implode(',', array_keys($_SESSION['cart'])) . ')';
-    }
+    $noQuestionMarks = '';
+    $products_array = array();
 
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $id, $title, $description, $price, $img);
-        
-        while (mysqli_stmt_fetch($stmt)) {
-            $row = array();
-            $row = array('id' => $id, 'title' => $title, 'description' => $description, 'price' => $price, 'img' => $img);
-            array_push($products_array, $row);
-        }
-    } else {
-        $products_error = 'Products NOT found!';
-        exit();
-    }
-}
-
-function selectDataById($conn, &$products_array, &$sql, $key) {
-    $sql = "SELECT id, title, description, price, img FROM products WHERE id=".$key;
-
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $id, $title, $description, $price, $img);
-        
-        while (mysqli_stmt_fetch($stmt)) {
-            $row = array();
-            $row = array('id' => $id, 'title' => $title, 'description' => $description, 'price' => $price, 'img' => $img);
-            array_push($products_array, $row);
-        }
-    } else {
-        $products_error = 'Product NOT found!';
-        exit();
-    }
-}
-
-function insertDataByID($conn, &$sql, $key, $title, $price, $description, $image ) {    
-    $sql = "INSERT INTO products VALUES (?, ?, ?, ?) WHERE id=".$key;
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_execute($stmt);
-    }
-}
-
-function updateDataByID($conn, &$sql, $key, $title, $price, $description, $image ) {    
-    $sql = "UPDATE products SET title=".$title.", description=".$description.",price=".$price.",img=".$image." WHERE id=".$key;
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_execute($stmt);
-    }
-}
-
-function deleteDataByID($conn, &$sql, $key, $title, $price, $description, $image ) {
-    $sql = "DELETE FROM products WHERE  id=".$key;
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_execute($stmt);
-    }
-}
-
-function validateInsertData(&$errorMsg, $title, $price, $description, $image) {
-
-        if (strlen($title) < 3) {
-            $errorMsg .= 'The Name must contains at least 3 characters <br/>';
-        }
-
-        if ( $price == 0) {
-            $errorMsg .= 'Invalid price<br/>';
-        }
-
-        if (strlen($description) < 3) {
-            $errorMsg .= 'Description too short! <br/>';
-        }
-
-        if (!is_valid_type($image)){
-            $errorMsg .= 'Not a valid File!';
-        }
-          
-        if ($errorMsg === '') {
-            return 1;
+    if (sizeof($_SESSION['cart'])) {
+        $noQuestionMarks = implode(',',array_fill(0, count(array_keys($_SESSION['cart'])), '?'));
+    } 
+    
+    if ($noQuestionMarks != '') {
+        if ($key) {
+            $sql .= ' WHERE id IN ('.$noQuestionMarks.')';
         } else {
-            return 0;
+            $sql .= ' WHERE id NOT IN ('.$noQuestionMarks.')';
         }
+    }
+
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+        
+        if (sizeof($_SESSION['cart'])) {
+            $types = '';
+            $idArray = array_keys($_SESSION['cart']);
+            
+            for($i = 0; $i < sizeof($idArray); $i++) {
+                $types =  $types."d";
+            }
+
+            $refs = array();
+            foreach($idArray as $key => $value) {
+                $refs[$key] = &$idArray[$key];
+            }
+
+            array_unshift($refs, $types);
+            call_user_func_array([$stmt, 'bind_param'], $refs);
+        }
+
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result($stmt, $id, $title, $description, $price, $img);
+        
+        while (mysqli_stmt_fetch($stmt)) {
+            $row = array();
+            $row = array('id' => $id, 'title' => $title, 'description' => $description, 'price' => $price, 'img' => $img); 
+            array_push($products_array, $row);
+        }
+
+    } else {
+        $products_array = 'Products NOT found!';
+    }
+
+    return $products_array;
+}
+
+function selectDataById($conn, $key) {
+    $sql = "SELECT id, title, description, price, img FROM products WHERE id= ? ";
+
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+        $stmt->bind_param('d', $key);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result($stmt, $id, $title, $description, $price, $img);
+        
+        while (mysqli_stmt_fetch($stmt)) {
+            $row = array();
+            $row = array('id' => $id, 'title' => $title, 'description' => $description, 'price' => $price, 'img' => $img);
+            array_push($products_array, $row);
+        }
+     } else {
+        $products_array = 'Products NOT found!';
+    }
+
+    return $products_array;
+}
+
+function insertDataByID($conn, $key, $title, $price, $description, $image ) {    
+    $sql = "INSERT INTO products VALUES (?, ?, ?, ?) WHERE id=?";
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+         $stmt->bind_param('ssdsd', $title, $description, $price, $image, $key);
+        mysqli_stmt_execute($stmt);
+    }
+}
+
+function updateDataByID($conn, $key, $title, $price, $description, $image ) {    
+    $sql = "UPDATE products SET title=?, description=?, price=?, img=? WHERE id=?";
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+        $stmt->bind_param('ssdsd', $title, $description, $price, $image, $key);
+        mysqli_stmt_execute($stmt);
+    }
+}
+
+function deleteDataByID($conn, $key, $title, $price, $description, $image ) {
+    $sql = "DELETE FROM products WHERE id=?";
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+        $stmt->bind_param('d', $key);
+        mysqli_stmt_execute($stmt);
+    }
+}
+
+function validateInsertData( $title, $price, $description, $image) {
+    $errorMsg = '';
+
+    if (strlen($title) < 3) {
+        $errorMsg .= 'The Name must contains at least 3 characters <br/>';
+    }
+
+    if ( $price == 0) {
+        $errorMsg .= 'Invalid price<br/>';
+    }
+
+    if (strlen($description) < 3) {
+        $errorMsg .= 'Description too short! <br/>';
+    }
+
+    if (!is_valid_type($image)){
+        $errorMsg .= 'Not a valid File!';
+    }
+      
+    if ($errorMsg === '') {
+        return $errorMsg;
+    } else {
+        return $errorMsg;
+    }
 }
 
 function emptyCart() {
