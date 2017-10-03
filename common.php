@@ -3,74 +3,51 @@ session_start();
 require_once "config.php";
 global $conn;
 
-$conn = mysqli_connect(db_servername, db_username, db_password, db_name);
-
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+try {
+    $conn = new PDO(db_servername, db_username, db_password);
+} catch (PDOException $Exception) {   
+    echo "Unable to connect to database.";
+    exit;
 }
 
-function getProducts( $key) {
+function getProducts( $idExist) {
     global $conn;
     $sql = "SELECT id, title, description, price, img FROM products";
     $noQuestionMarks = '';
-
-    $products_array = array();
-    $refs = array_keys($_SESSION['cart']);
     $sessionSize = sizeof($_SESSION['cart']);
 
-    if ($sessionSize) {
+    $products_array = array();
+     if ($sessionSize) {
         $noQuestionMarks = implode(',', array_fill(0, $sessionSize, '?'));
     } 
     
     if ($noQuestionMarks != '') {
-        $sql .= ' WHERE id '.($key ? '' : 'NOT').' IN ('.$noQuestionMarks.')';
+        $sql .= ' WHERE id '.($idExist ? '' : 'NOT').' IN ('.$noQuestionMarks.')';
     }
+   
+    if ($stmt = $conn->prepare($sql)) {
+        $idArray =  array_keys($_SESSION['cart']);
+        $stmt->execute($idArray);
 
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        
-        if ($sessionSize) {
-            $types = '';
-            
-            for($i = 0; $i < $sessionSize; $i++) {
-                $types =  $types."d";
-            }
-
-            // $refs = array();
-            // foreach($_SESSION['cart'] as $key => $value) {
-            //     $refs[$key] = &$_SESSION['cart'][$key];
-            // }
-
-            array_unshift($refs, $types);
-            call_user_func_array([$stmt, 'bind_param'], $refs);
-        }
-
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $id, $title, $description, $price, $img);
-        
-        while (mysqli_stmt_fetch($stmt)) {
-            $row = array();
-            $row = array('id' => $id, 'title' => $title, 'description' => $description, 'price' => $price, 'img' => $img); 
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { 
             array_push($products_array, $row);
         }
-
     } else {
         $products_array = 'Products NOT found!';
     }
-
     return $products_array;
 }
 
-function selectDataById( $key) {
+function selectDataById( $id) {
     global $conn;
-    $sql = "SELECT id, title, description, price, img FROM products WHERE id= ? ";
+    $products_array = array();
+    $sql = "SELECT id, title, description, price, img FROM products WHERE id= :id ";
 
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        $stmt->bind_param('d', $key);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $id, $title, $description, $price, $img);
-        
-        while (mysqli_stmt_fetch($stmt)) {
-            $products_array = array('id' => $id, 'title' => $title, 'description' => $description, 'price' => $price, 'img' => $img);
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->execute(array(':id' => $id));
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { 
+            array_push($products_array, $row);
         }
      } else {
         $products_array = 'Products NOT found!';
@@ -80,26 +57,23 @@ function selectDataById( $key) {
 }
 
 function insertDataByID( $title, $price, $description, $image ) {    
-    $sql = "INSERT INTO products VALUES (?, ?, ?, ?)";
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-         $stmt->bind_param('ssdsd', $title, $description, $price, $image);
-        mysqli_stmt_execute($stmt);
+    $sql = "INSERT INTO products VALUES (:title, :description, :price, :img)";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->execute(array(':title' => $title, ':description' => $description, ':price' => $price, ':img' => $image));
     }
 }
 
-function updateDataByID( $key, $title, $price, $description, $image ) {    
-    $sql = "UPDATE products SET title=?, description=?, price=?, img=? WHERE id=?";
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        $stmt->bind_param('ssdsd', $title, $description, $price, $image, $key);
-        mysqli_stmt_execute($stmt);
+function updateDataByID( $id, $title, $price, $description, $image ) {    
+    $sql = "UPDATE products SET title = :title, description = :description, price = :price, img = :img WHERE id = :id";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->execute(array(':title' => $title, ':description' => $description, ':price' => $price, ':img' => $image, ':id' => $id));
     }
 }
 
-function deleteDataByID( $key, $title, $price, $description, $image ) {
-    $sql = "DELETE FROM products WHERE id=?";
-    if ($stmt = mysqli_prepare($conn, $sql)) {
-        $stmt->bind_param('d', $key);
-        mysqli_stmt_execute($stmt);
+function deleteDataByID( $id ) {
+    $sql = "DELETE FROM products WHERE id = :id";
+     if ($stmt = $conn->prepare($sql)) {
+        $stmt->execute(array(':id' => $id));
     }
 }
 
@@ -189,4 +163,11 @@ function is_valid_type($file) {
         }
     }
     return 0;
+}
+
+function validateEmail($email) {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+    return true;
 }

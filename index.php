@@ -1,5 +1,10 @@
 <?php 
     require_once 'common.php';
+
+    if (!isset($_SESSION['cart'])) {
+        $cart = array(); 
+        $_SESSION['cart'] = $cart;  
+    }
     
     if (isset($_GET['quantity']) && isset($_GET['id'])) {    
         addToCart();     
@@ -9,7 +14,8 @@
         emptyCart();
     } 
 
-    $products_array = getProducts(false);     
+    $products_array = getProducts(false);  
+  
 ?>
 <html>
 <head>

@@ -2,6 +2,7 @@
     require_once 'common.php';
 
     $total = 0;
+    $emailConfirm = '';
 
     if (isset($_GET['action']) && $_GET['action'] == 'empty') {
         emptyCart();
@@ -16,16 +17,29 @@
         addToCart();     
     } 
 
-    $products_array = getProducts( true);
+    $products_array = getProducts(true);
 
-    if (isset($_SESSION['cart'])) {
+    if (isset($_SESSION['cart']) && sizeof($_SESSION['cart'])) {
         foreach ($products_array as $elem_product) {
-            if (in_array($elem_product['id'], array_keys($_SESSION['cart']))) {
-            $total = $total + $elem_product["price"] * $_SESSION['cart'][$elem_product["id"]]; 
-            }
+            $total = $total + $elem_product["price"] * $_SESSION['cart'][$elem_product['id']]; 
         }
-    }
+    }    
+
+    if (isset($_GET['action']) && $_GET['action'] == 'emailform'){
+        
+        if (validateEmail($_POST['email'])) {
+            $email = $_POST['email'];
+        } 
        
+        if ($_POST['name'] > 3 && $_POST['message'] > 3) {
+            $name = $_POST['name'];
+            $comment = $_POST['message'];
+        }
+        if (isset($email) && isset($name) && isset($comment)) {
+            $emailConfirm = 'Email send Succes!';
+            mail($email, "$name", $comment, "From: pojar_raluca@yahoo.com");
+        } 
+    }   
 ?>     
 <html>
 <head>
@@ -42,6 +56,7 @@
 </head>
 <body>
 <?= (is_string($products_array) ? $products_array : '') ?>
+<?= (sizeof($emailConfirm) ? $emailConfirm : 'ERROR') ?>
 <h1 class="error">Cart Products</h2>
 <a class="button" type="button"  href="cart.php?action=empty"><?= translate('empty') ?></a>
 <a class="button" type="button"  href="index.php"><?= translate('view') ?></a>
@@ -68,7 +83,7 @@
     <?php endif; ?>
     <h1 class="error">Final: <?= protect($total) ?>$ </h2>
 </div>
-<form method="post" name="emailform" action="cart.php">
+<form method="post" name="emailform" action="cart.php?action=emailform">
     <table>
         <tr>
             <th>Name:</th>
