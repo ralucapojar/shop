@@ -56,14 +56,16 @@ function selectDataById( $id) {
     return $products_array;
 }
 
-function insertDataByID( $title, $price, $description, $image ) {    
-    $sql = "INSERT INTO products VALUES (:title, :description, :price, :img)";
+function insertData( $title, $price, $description, $image ) {   
+    global $conn; 
+    $sql = "INSERT INTO products (`title`, `description`, `price`, `img`) VALUES (:title, :description, :price, :img)";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->execute(array(':title' => $title, ':description' => $description, ':price' => $price, ':img' => $image));
     }
 }
 
-function updateDataByID( $id, $title, $price, $description, $image ) {    
+function updateDataByID( $id, $title, $price, $description, $image ) {  
+    global $conn;  
     $sql = "UPDATE products SET title = :title, description = :description, price = :price, img = :img WHERE id = :id";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->execute(array(':title' => $title, ':description' => $description, ':price' => $price, ':img' => $image, ':id' => $id));
@@ -71,13 +73,14 @@ function updateDataByID( $id, $title, $price, $description, $image ) {
 }
 
 function deleteDataByID( $id ) {
+    global $conn;
     $sql = "DELETE FROM products WHERE id = :id";
      if ($stmt = $conn->prepare($sql)) {
         $stmt->execute(array(':id' => $id));
     }
 }
 
-function validateInsertData( $title, $price, $description, $image) {
+function validateInsertData( $title, $price, $description) {
     $errorMsg = '';
 
     if (strlen($title) < 3) {
@@ -90,10 +93,6 @@ function validateInsertData( $title, $price, $description, $image) {
 
     if (strlen($description) < 3) {
         $errorMsg .= 'Description too short! <br/>';
-    }
-
-    if (!is_valid_type($image)){
-        $errorMsg .= 'Not a valid File!';
     }
       
     if ($errorMsg === '') {
@@ -146,28 +145,20 @@ function protect($str) {
     return htmlentities(strip_tags($str));
 }
 
-function is_valid_type($file) {
-    if($file){
-        $size = getimagesize($file);
-        
-        if (!$size) {
-            return 0;
+function uploadImage(){
+    $target = "img/";
+    $messageError='';
+    $target = $target . basename( $_FILES['Filename']['name']);
+    $Filename=basename( $_FILES['Filename']['name']);
+
+    if (move_uploaded_file($_FILES['Filename']['tmp_name'], $target)) {
+       
+        $errorMsg = validateInsertData( $_POST['title'], $_POST['price'], $_POST['description']);
+        if ($errorMsg != '') {
+            $messageError = $errorMsg;
         }
-
-        $valid_types = array(IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP);
-
-        if (in_array($size[2],  $valid_types)) {
-            return 1;
-        } else {
-            return 0;
-        }
+    } else {      
+        $messageError = "Sorry, there was a problem uploading your file.";
     }
-    return 0;
-}
-
-function validateEmail($email) {
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return false;
-    }
-    return true;
+    return $messageError;
 }

@@ -1,18 +1,42 @@
 <?php 
-    session_start();
     require_once 'common.php';
 
+    $confirm = '';
+    $listVal[0] = array('title'=>'', 'price'=>'', 'description'=>'', 'img'=>'');
 
-    $errorMsg = $confirm = '';
-    $listVal = array('title'=>'', 'price'=>'', 'description'=>'', 'image'=>'');
+    if (isset($_GET['action']) && $_GET['action'] == 'add') {
+        $title = $_POST['title'];
+        $description = $_POST['description'];
+        $price = $_POST['price'];
+        $confirm = uploadImage();
 
-    if( isset($_GET['action']) == 'update' && !isset($_GET['id'])) {
-       $listVal = array_replace($listVal, $_POST);
+        if ($confirm == '') {
+            $path = './img/' . basename( $_FILES['Filename']['name']);
+            insertData($title, $price, $description, $path);
+            $confirm = 'Data succesfull inserted!';
+        }
+             
+    }
+  
+    if (isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['id'])) {
+        $id = intval($_GET['id']);
+        $listVal = selectDataById($id);
+    }
 
-        if(validateInsertData($errorMsg, $_POST['title'], $_POST['price'], $_POST['description'], $_POST['image'])){
-            $confirm = 'The data was successfully added';      
-        } else {
-            $confirm = $errorMsg;
+    if (isset($_GET['action']) && $_GET['action'] == 'update' && !isset($_GET['id'])) {
+        
+        $listVal = array_replace($listVal, $_POST);
+        $id = intval($_POST['id']);
+        $title = $_POST['title'];
+        $description = $_POST['description'];
+        $price = $_POST['price'];
+        
+        $confirm = uploadImage();
+
+        if ($confirm == '') {
+            $path = './img/' . basename( $_FILES['Filename']['name']);
+            updateDataByID($id, $title, $price, $description, $path);
+            $confirm = 'Data succesfull updated!';
         }
     }
 ?>    
@@ -25,28 +49,29 @@
     </head>
     <body>
         <h3 class="error"><?= isset($confirm) ? $confirm : '' ?></h3>
-        <table>
-            <tr><form method="post" action="product.php?action=<?php echo utf8_decode(urldecode(isset($_GET['action']) ? $_GET['action'] : '')) ?>"></tr>
-            <tr>
-                <th>Title:</th>
-                <td><input type="text" name="title" value="<?php echo protect(isset($_POST['title']) ? $_POST['title'] : $listVal['title'])?>"></td>
-            </tr>
-            <tr>
-                <th>Price:</th>
-                <td><input type="number" name="price" value="<?php echo protect(isset($_POST['price']) ? $_POST['price'] : $listVal['price'])?>"></td>
-            </tr>
-            <tr>
-                <th>Description:</th>
-                <td><textarea name="description" value="<?php echo protect(isset($_POST['description']) ? $_POST['description'] : $listVal['description'])?>" ><?php echo protect(isset($_POST['description']) ? $_POST['description'] : $listVal['description'])?></textarea></td>
-            </tr>
-            <tr>
-                <th>Image:</th>
-                <td><input type="file" name="image" accept="image/" value="<?php echo protect(isset($_POST['image']) ? $_POST['image'] : $listVal['image'])?>"></td>
-            </tr>
-        </table>
-        <a class="btnStyle" href="index.php"><?= translate('view') ?></a>
-        <a class="btnStyle" href="products.php"><?= translate('addProducts') ?></a>
-        <input type="submit" value="<?= translate('save') ?>">
+        <form enctype="multipart/form-data" method="post" action="product.php?action=<?php echo utf8_decode(urldecode(isset($_GET['action']) ? $_GET['action'] : 'add')) ?>">
+            <table>
+            <input type="hidden" name="id" value="<?= (isset($_GET['id']) ? $_GET['id'] : '') ?>">
+                <tr>
+                    <th>Title:</th>
+                    <td><input type="text" name="title" value="<?php echo protect(isset($_POST['title']) ? $_POST['title'] : $listVal[0]['title'])?>"></td>
+                </tr>
+                <tr>
+                    <th>Price:</th>
+                    <td><input type="number" name="price" value="<?php echo protect(isset($_POST['price']) ? $_POST['price'] : $listVal[0]['price'])?>"></td>
+                </tr>
+                <tr>
+                    <th>Description:</th>
+                    <td><textarea name="description" value="<?php echo protect(isset($_POST['description']) ? $_POST['description'] : $listVal[0]['description'])?>" ><?php echo protect(isset($_POST['description']) ? $_POST['description'] : $listVal[0]['description'])?></textarea></td>
+                </tr>
+                <tr>
+                    <th>Image:</th>
+                    <td><input type="file" name="Filename" accept="image/*" data-buttonText="<?php echo protect(isset($_POST['img']) ? $_POST['img'] : $listVal[0]['img'])?>"></td>
+                </tr>
+            </table>
+            <a class="btnStyle" href="index.php"><?= translate('view') ?></a>
+            <a class="btnStyle" href="products.php"><?= translate('addProducts') ?></a>
+            <input type="submit" value="<?= translate('save') ?>">
         </form>
     </body>
 </html>

@@ -1,11 +1,18 @@
 <?php 
-    session_start();
-    require_once 'common.php';
+    require_once 'common.php';    
 
-    $products_error = '';
-    $products_array = array();    
-    $sql = "";
-    setData($conn, $products_array, $sql, 'NOT');
+    if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+        $id = $_GET['id'];
+        deleteDataByID($id);        
+    }
+
+    $products_array = getProducts($conn, false);
+
+    if (!is_string($products_array)) {
+        $products_error = '';
+    } else {
+        $products_error = 'Products NOT found!';
+    }
 
 ?>     
 <html>
@@ -37,7 +44,7 @@
                 <input type="number" min="1"  placeholder="quantity" name="quantity" required="required" />
                 <input type="hidden" name="id" value="<?= protect($elem_product["id"]) ?>"/>
                 <input type="submit" value="Add to Cart!" />
-                <?php $removeElem = 'product.php?action=delete&id='.protect($elem_product['id']) ?>
+                <?php $removeElem = 'products.php?action=delete&id='.protect($elem_product['id']) ?>
                 <a href="<?= $removeElem ?>"><?= translate('delete') ?></a>
                 <?php $editElem = 'product.php?action=update&id='.protect($elem_product['id']) ?>
                 <a href="<?= $editElem ?>"><?= translate('edit') ?></a>

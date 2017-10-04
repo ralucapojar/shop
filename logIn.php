@@ -1,6 +1,5 @@
 <?php 
     require "common.php";
-    session_start();
     
     $nameErr = $passErr = "";
     $name = $pass = "";
