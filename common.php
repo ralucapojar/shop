@@ -128,7 +128,7 @@ $translations = array(
         'empty' => 'Empty Cart',
         'remove' => 'Remove from Cart',
         'save' => 'Save',
-        'signOut' => 'Check Out',
+        'checkOut' => 'Check Out',
         'signIn' => 'Sign In',
         'view' => 'List Products'
     ),

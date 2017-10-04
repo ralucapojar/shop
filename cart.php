@@ -26,19 +26,23 @@
     }    
 
     if (isset($_GET['action']) && $_GET['action'] == 'emailform'){
-        
-        if (validateEmail($_POST['email'])) {
-            $email = $_POST['email'];
-        } 
-       
-        if ($_POST['name'] > 3 && $_POST['message'] > 3) {
-            $name = $_POST['name'];
-            $comment = $_POST['message'];
-        }
-        if (isset($email) && isset($name) && isset($comment)) {
+            $email = "From: " . protect($_REQUEST['email']) . "\r\n";
+            $name = protect($_REQUEST['name']);
+            $message = protect($_REQUEST['message']);
+            $message .= "\n ";
+
+            foreach ($products_array as $key => $product) {
+                $message .= "\n ";
+                $message .= 1 + $key;
+                $message .= " Product => ". $product['title'];
+                $message .= "\n Price:".$product['price']." \n";
+                $message .= " Quantity:".$_SESSION['cart'][$product['id']];
+                $message .= "\n Description: ".$product['description'];
+                $message .= "\n ";
+            }
+            $message .= "\n Total: ".$total."$ \n"; 
             $emailConfirm = 'Email send Succes!';
-            mail($email, "$name", $comment, "From: pojar_raluca@yahoo.com");
-        } 
+            mail($email, $name, $message, $email); 
     }   
 ?>     
 <html>
@@ -61,7 +65,7 @@
 <a class="button" type="button"  href="cart.php?action=empty"><?= translate('empty') ?></a>
 <a class="button" type="button"  href="index.php"><?= translate('view') ?></a>
 <div>     
-    <?php  if (!is_string($products_array)): ?> 
+    <?php  if (!is_string($products_array)): ?>   
         <?php foreach ($products_array as $elem_product): ?>
             <?php if (in_array($elem_product["id"], array_keys($_SESSION['cart']))): ?>
             <div class="border">
@@ -91,14 +95,14 @@
         </tr>
         <tr>
             <th>Email:</th>
-            <td><input type="text" name="email"></td>
+            <td><input type="email" name="email"></td>
         </tr>
         <tr>
             <th>Comments:</th>
             <td><textarea name="message"></textarea></td>
         </tr>
     </table>
-    <input type="submit" value="<?= translate('signOut') ?>">
+    <input type="submit" value="<?= translate('checkOut') ?>">
 </form>
 </body>
 </html>
