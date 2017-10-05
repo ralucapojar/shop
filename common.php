@@ -151,14 +151,15 @@ function uploadImage(){
     $target = $target . basename( $_FILES['Filename']['name']);
     $Filename=basename( $_FILES['Filename']['name']);
 
-    if (move_uploaded_file($_FILES['Filename']['tmp_name'], $target)) {
-       
-        $errorMsg = validateInsertData( $_POST['title'], $_POST['price'], $_POST['description']);
-        if ($errorMsg != '') {
-            $messageError = $errorMsg;
-        }
-    } else {      
-        $messageError = "Sorry, there was a problem uploading your file.";
+    $errorMsg = validateInsertData( $_POST['title'], $_POST['price'], $_POST['description']);
+    
+    if ($errorMsg != '') {
+        $messageError .= $errorMsg;
     }
+    
+    if (!move_uploaded_file($_FILES['Filename']['tmp_name'], $target)) {
+       $messageError .= "Sorry, there was a problem uploading your file.";
+    } 
+    
     return $messageError;
 }
