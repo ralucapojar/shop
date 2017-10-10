@@ -47,7 +47,7 @@
                 <input type="number" min="1"  placeholder="<?= translate('quantity');?>" name="quantity" required="required" />
                 <input type="hidden" name="id" value="<?= protect($elem_product["id"]) ?>"/>
                 <input type="submit" value="Add to Cart!" />
-                <a href="products.php?action=delete&id=<?=protect($elem_product['id'])?>"</a>
+                <a href="products.php?action=delete&id=<?=protect($elem_product['id'])?>"><?= translate('delete') ?></a>
                 <a href="product.php?action=update&id=<?= protect($elem_product['id'])?>"><?= translate('edit') ?></a>
             </form>
         </div>
