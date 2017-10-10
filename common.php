@@ -121,15 +121,37 @@ $translations = array(
         'add' => 'Add Product',
         'addProducts' => 'View Own Products',
         'cart' => 'View Cart',
+        'cartProduct' => 'Cart Products',
         'change' => 'Change Quantity',
-        'delete' => 'Delete',
-        'edit' => 'Edit',
-        'empty' => 'Empty Cart',
-        'remove' => 'Remove from Cart',
-        'save' => 'Save',
         'checkOut' => 'Check Out',
+        'comments' => 'Comments',
+        'delete' => 'Delete',
+        'description' => 'Description',
+        'edit' => 'Edit',
+        'email' => 'Email',
+        'empty' => 'Empty Cart',
+        'error' => 'ERROR!!!',
+        'final' => 'Final',
+        'image' => 'Image',
+        'listProduct' => 'List Products',
+        'name' => 'Name',
+        'notFoundProducts' => 'Products NOT found!',
+        'notImg' => 'NOT an Image',
+        'notUpd' => 'Sorry, there was a problem uploading your file.',
+        'password' => 'Password',
+        'price' => 'Price',
+        'product' => 'Product',
+        'quantity' => 'Quantity',
+        'remove' => 'Remove from Cart',
+        'requireName' => 'Name is required',
+        'requirePass' => 'Password is required',
+        'save' => 'Save',       
         'signIn' => 'Sign In',
-        'view' => 'List Products'
+        'title' => 'Title',
+        'totalPrice' => 'Total Price',
+        'value' => '$',
+        'view' => 'List Products',
+        'username' => 'Username'
     ),
     'ro' => array(
         'Add Product!' => 'Adauga Produs!'
@@ -145,20 +167,18 @@ function protect($str) {
     return htmlentities(strip_tags($str));
 }
 
-function uploadImage(){
+function uploadImage($id){
     $target = "img/";
     $messageError='';
-    $target = $target . basename( $_FILES['Filename']['name']);
-    $Filename=basename( $_FILES['Filename']['name']);
+    $target = $target. basename( $_FILES['Filename']['name']);
+    $_FILES['Filename']['name'] = ''.$id.$_FILES['Filename']['name'];
 
-    $errorMsg = validateInsertData( $_POST['title'], $_POST['price'], $_POST['description']);
-    
-    if ($errorMsg != '') {
-        $messageError .= $errorMsg;
+    if( $_FILES['Filename']['size'] == 0 ) {
+        $messageError .= translate('notImg');
     }
     
     if (!move_uploaded_file($_FILES['Filename']['tmp_name'], $target)) {
-       $messageError .= "Sorry, there was a problem uploading your file.";
+       $messageError .= translate('notUpd');
     } 
     
     return $messageError;

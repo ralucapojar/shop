@@ -1,5 +1,8 @@
 <?php 
     require_once 'common.php';
+    if (!isset($_SESSION['logged'])) {
+        die();  
+    }
 
     $confirm = '';
     $listVal[0] = array('title'=>'', 'price'=>'', 'description'=>'', 'img'=>'');
@@ -18,23 +21,25 @@
              
     }
   
-    if (isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['id'])) {
+    if (isset($_GET['action']) && isset($_GET['id'])) {
         $id = intval($_GET['id']);
         $listVal = selectDataById($id);
     }
 
-    if (isset($_GET['action']) && $_GET['action'] == 'update' && !isset($_GET['id'])) {
+    if (isset($_GET['action']) && !isset($_GET['id'])) {
         
         $listVal = array_replace($listVal, $_POST);
         $id = intval($_POST['id']);
         $title = $_POST['title'];
         $description = $_POST['description'];
         $price = $_POST['price'];
+
+        $confirm = validateInsertData( $title, $price, $description);
         
-        $confirm = uploadImage();
+        $confirm .= uploadImage($id);
 
         if ($confirm == '') {
-            $path = './img/' . basename( $_FILES['Filename']['name']);
+            $path = './img/' .$id. basename( $_FILES['Filename']['name']);
             updateDataByID($id, $title, $price, $description, $path);
             $confirm = 'Data succesfull updated!';
         }
@@ -53,19 +58,19 @@
             <table>
             <input type="hidden" name="id" value="<?= (isset($_GET['id']) ? $_GET['id'] : '') ?>">
                 <tr>
-                    <th>Title:</th>
+                    <th><?php echo translate('title');?></th>
                     <td><input type="text" name="title" value="<?php echo protect(isset($_POST['title']) ? $_POST['title'] : $listVal[0]['title'])?>"></td>
                 </tr>
                 <tr>
-                    <th>Price:</th>
+                    <th><?php echo translate('price');?></th>
                     <td><input type="number" name="price" value="<?php echo protect(isset($_POST['price']) ? $_POST['price'] : $listVal[0]['price'])?>"></td>
                 </tr>
                 <tr>
-                    <th>Description:</th>
+                    <th><?php echo translate('description');?></th>
                     <td><textarea name="description" value="<?php echo protect(isset($_POST['description']) ? $_POST['description'] : $listVal[0]['description'])?>" ><?php echo protect(isset($_POST['description']) ? $_POST['description'] : $listVal[0]['description'])?></textarea></td>
                 </tr>
                 <tr>
-                    <th>Image:</th>
+                    <th><?php echo translate('image');?></th>
                     <td><input type="file" name="Filename" accept="image/*" data-buttonText="<?php echo protect(isset($_POST['img']) ? $_POST['img'] : $listVal[0]['img'])?>"></td>
                 </tr>
             </table>

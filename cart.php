@@ -1,6 +1,10 @@
 <?php 
     require_once 'common.php';
 
+    if (!isset($_SESSION['logged'])) {
+        die();  
+    }
+
     $total = 0;
     $emailConfirm = '';
 
@@ -42,7 +46,7 @@
             }
             $message .= "\n Total: ".$total."$ \n"; 
             $emailConfirm = 'Email send Succes!';
-            mail($email, $name, $message, $email); 
+            mail(adminEmail, $name, $message, $email); 
     }   
 ?>     
 <html>
@@ -60,8 +64,8 @@
 </head>
 <body>
 <?= (is_string($products_array) ? $products_array : '') ?>
-<?= (sizeof($emailConfirm) ? $emailConfirm : 'ERROR') ?>
-<h1 class="error">Cart Products</h2>
+<?= (sizeof($emailConfirm) ? $emailConfirm : translate('error')) ?>
+<h1 class="error"><?= translate('cartProduct') ?>;</h2>
 <a class="button" type="button"  href="cart.php?action=empty"><?= translate('empty') ?></a>
 <a class="button" type="button"  href="index.php"><?= translate('view') ?></a>
 <div>     
@@ -69,36 +73,36 @@
         <?php foreach ($products_array as $elem_product): ?>
             <?php if (in_array($elem_product["id"], array_keys($_SESSION['cart']))): ?>
             <div class="border">
-                <h2 class="title">Product: <?= protect($elem_product["title"]) ?></h2>
-                <h3 class="price">Quantity: <?= protect($_SESSION['cart'][$elem_product["id"]]) ?></h3><br>
+                <h2 class="title"> <?= translate('product').' '. protect($elem_product["title"]) ?></h2>
+                <h3 class="price"><?= translate('quantity').' '. protect($_SESSION['cart'][$elem_product["id"]]) ?></h3><br>
                 <form method="get" action="cart.php">
                     <input style="display:inline;" type="number" min="1"  placeholder="<?= protect($_SESSION['cart'][$elem_product["id"]]) ?>" name="quantity" required="required" />
                     <input style="display:inline;" type="hidden" name="id" value="<?= protect($elem_product["id"]) ?>"/>
                     <input style="display:inline;" type="submit" value="<?= translate('change') ?>" />
                 </form>
-                <h3 class="price">Total Price: <?= protect($elem_product["price"] * $_SESSION['cart'][$elem_product["id"]]) ?>$</h3><br>
+                <h3 class="price"><?= translate('totalPrice').' '. protect($elem_product["price"] * $_SESSION['cart'][$elem_product["id"]]) ?>$</h3><br>
                 <img class="image" src="<?= protect($elem_product["img"]) ?>"/><br>
-                <p>Description: <br> <?= protect($elem_product["description"]) ?></p><br>
+                <p><?= translate('description');?> <br> <?= protect($elem_product["description"]) ?></p><br>
                 <?php $rmElem = 'cart.php?action=remove&id='.protect($elem_product['id']) ?>
                 <a href="<?= $rmElem ?>"><?= translate('remove') ?></a>
             </div>
             <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
-    <h1 class="error">Final: <?= protect($total) ?>$ </h2>
+    <h1 class="error"><?= translate('final') .' '. protect($total); translate('value');?> </h2>
 </div>
 <form method="post" name="emailform" action="cart.php?action=emailform">
     <table>
         <tr>
-            <th>Name:</th>
+            <th><?= translate('name');?></th>
             <td><input type="text" name="name"></td>
         </tr>
         <tr>
-            <th>Email:</th>
+            <th><?= translate('email');?></th>
             <td><input type="email" name="email"></td>
         </tr>
         <tr>
-            <th>Comments:</th>
+            <th><?= translate('comments');?></th>
             <td><textarea name="message"></textarea></td>
         </tr>
     </table>
